@@ -1,0 +1,103 @@
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+public class JDBCTest {
+
+        private static String dBURL = "jdbc:sapdb:///C73?user=SAPC73DB&password=abcd1234";        
+        
+        private static String TableName = "xi_idoc_in_msg";
+
+        private static Connection conn = null;
+        private static Statement stmt = null;
+
+        public static void main(String[] args) {
+                createConnectin();
+                selectIdcos();
+                shutdown();
+
+        }
+
+        private static void shutdown() {
+                
+             try
+                {
+                    if (stmt != null)
+                    {
+                        stmt.close();
+                    }
+                    if (conn != null)
+                    {
+                        DriverManager.getConnection(dBURL + ";shutdown=true");
+                        conn.close();
+                    }           
+                }
+                catch (SQLException sqlExcept)
+                {
+                    
+                }                
+
+        }
+
+        private static void selectIdcos() {
+                
+        try
+        {
+            stmt = conn.createStatement();
+            
+            System.out.println("Retrieving  data from" + TableName);
+            
+            ResultSet results = stmt.executeQuery("select * from " + TableName);
+            ResultSetMetaData rsmd = results.getMetaData();
+            int numberCols = rsmd.getColumnCount();
+            for (int i=1; i<=numberCols; i++)
+            {
+                //print Column Names
+                System.out.print(rsmd.getColumnLabel(i)+"\t\t");  
+            }
+
+            System.out.println("\n-------------------------------------------------");
+
+            while(results.next())
+            {
+            	String ref_number = results.getString(1);
+                String idoc_number = results.getString(2);
+                String XI_MSG_NO = results.getString(3);        
+                System.out.println(ref_number + "\t\t" + idoc_number + "\t\t" + XI_MSG_NO);
+            }
+            results.close();
+            stmt.close();
+        }
+        catch (SQLException sqlExcept)
+        {
+            sqlExcept.printStackTrace();
+        }
+                
+                
+
+        }
+
+        private static void createConnectin() {
+
+                try {
+//                        Class.forName("org.Apache.derby.Clientdriver").newInstance();
+
+                        Class.forName("com.sap.dbtech.jdbc.DriverSapDB").newInstance();                        
+                        conn = DriverManager.getConnection(dBURL);
+
+                } catch (InstantiationException e) {
+                        e.printStackTrace();
+                } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                } catch (ClassNotFoundException e) {
+                        e.printStackTrace();
+                } catch (SQLException e) {
+                        e.printStackTrace();
+                }
+
+        }
+
+}
